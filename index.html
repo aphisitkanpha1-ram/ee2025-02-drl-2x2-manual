@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DRL 2x2 | Orbital Command</title>
+    <title>DRL 2x2 Operation Manual</title>
     <style>
-        /* นำเข้าฟอนต์สไตล์ Web3 / Modern Tech */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;800&family=JetBrains+Mono:wght@400;700&family=Syne:wght@600&display=swap');
 
         :root {
-            --bg-dark: #030305; /* ดำลึกแบบอวกาศ */
+            --bg-dark: #030305; 
             --text-primary: #ffffff;
             --text-secondary: #a1a1aa;
             --card-bg: rgba(20, 20, 25, 0.4);
@@ -28,7 +27,6 @@
             min-height: 100vh;
         }
 
-        /* --- NEW NAVIGATION BAR (Modified) --- */
         .navbar-container {
             position: fixed;
             top: 0;
@@ -78,7 +76,6 @@
             padding: 5px 0;
         }
 
-        /* เส้นใต้เรืองแสงตอน Hover */
         .nav-links a::after {
             content: '';
             position: absolute;
@@ -99,7 +96,6 @@
             width: 100%;
         }
 
-        /* --- 1. Space Environment (คงเดิม) --- */
         .starfield {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -146,13 +142,18 @@
 
         @keyframes shoot { 0% { transform: translateX(0) translateY(0) rotate(-20deg); opacity: 0; } 10% { opacity: 1; } 20% { transform: translateX(-800px) translateY(300px) rotate(-20deg); opacity: 0; } 100% { transform: translateX(-800px) translateY(300px) rotate(-20deg); opacity: 0; } }
 
-        /* --- Container Content (คงเดิม) --- */
         .container {
             max-width: 1000px;
             margin: 0 auto;
-            padding: 120px 20px 40px 20px; /* เพิ่ม padding top เพื่อหลบ navbar */
+            padding: 120px 20px 40px 20px;
             position: relative;
             z-index: 10;
+        }
+        .blink {
+            animation: blinker 3s linear infinite;
+        }
+        @keyframes blinker {
+            50% { opacity: 0; }
         }
 
         .hero { text-align: center; margin-bottom: 80px; }
@@ -180,7 +181,6 @@
         .action-btn h4 { margin: 0 0 8px 0; font-size: 0.95rem; letter-spacing: 0.5px; }
         .action-btn p { margin: 0; font-size: 0.85rem; color: var(--text-secondary); font-family: 'Inter', sans-serif;}
 
-/* --- 4. Music Control UI --- */
         .music-control {
             position: fixed; bottom: 30px; right: 30px;
             background: rgba(255, 255, 255, 0.05);
@@ -201,6 +201,69 @@
 
         footer { text-align: center; padding: 60px 0 40px 0; color: rgba(161, 161, 170, 0.5); font-size: 0.85rem; letter-spacing: 3px; }
 
+        .code-block {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 768px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+            .navbar {
+                flex-direction: column;
+                padding: 15px;
+                gap: 12px;
+            }
+            .nav-links {
+                gap: 15px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .container {
+                padding-top: 150px;
+            }
+            .card-title {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: clamp(2rem, 10vw, 3rem) !important;
+            }
+            .hero p {
+                font-size: 1rem;
+            }
+            .card {
+                padding: 24px;
+            }
+            .card-value {
+                font-size: 1.6rem;
+            }
+            .card-value span {
+                display: block;
+                margin-left: 0 !important;
+                margin-top: 5px;
+                font-size: 0.9rem !important;
+            }
+            .step-item h4 {
+                font-size: 1rem;
+            }
+            .step-item p {
+                font-size: 0.9rem;
+            }
+            .music-control {
+                bottom: 15px; 
+                right: 15px;
+                padding: 8px 15px;
+            }
+            .action-btn {
+                padding: 16px;
+            }
+        }
     </style>
 </head>
 
@@ -235,31 +298,32 @@
     <div class="container">
         
         <div class="hero">
-            <span class="eyebrow">Welcome to the Matrix</span>
+            <span class="eyebrow">DRL 2x2 Oeration Manual</span>
             <h1>The Intelligence of<br>Solar Topologies.</h1>
-            <p>DRL 2X2 ORBITAL COMMAND — Optimize power output under partial shading via Deep Reinforcement Learning (DDQN) built for a decentralized energy future.</p>
+            <p>2X2 Matrix PV Reconfiguration System — Optimize power output under partial shading via Deep Reinforcement Learning (DRL).</p>
         </div>
 
         <div class="grid-layout" id="overview">
             <div class="card">
                 <div class="card-title">Core Engine</div>
-                <div class="card-value">Python / DDQN</div>
+                <div class="card-value">Python / DRL</div>
             </div>
             <div class="card">
                 <div class="card-title">Executor</div>
-                <div class="card-value">ESP32 Combiner</div>
+                <div class="card-value">ESP32 & Combiner</div>
             </div>
             
             <div class="card card-full">
                 <div class="card-title" style="display: flex; justify-content: space-between;">
                     <span>System Hardware</span>
-                    <span class="mono" style="color: #10b981;">STATUS: STANDBY_</span>
+                    <span class="mono" style="color: #10b981;"><span class="blink">STATUS: STANDBY</span></span>
                 </div>
-                <div class="card-value" style="margin-bottom: 24px;">27 Relays <span style="font-size: 1.1rem; color: var(--text-secondary); font-weight: 400; margin-left: 10px;">(14 Active / 13 Bridge)</span></div>
+                <div class="card-value" style="margin-bottom: 24px;">27 Relays <span style="font-size: 1.1rem; color: var(--text-secondary); font-weight: 400; margin-left: 10px;">(14 Actives / 13 Bridges)</span></div>
                 
                 <div class="code-block mono">
-                    > I2C_SCAN_LOG:<br>
-                    > 0x70 [MAX44009] OK<br>
+                    I2C_SCAN_LOG:<br>
+                    > 0x70-0x71 [TCA9548A] OK<br>
+                    > 04A-04B [MAX44009] OK<br>
                     > 0x20-0x24 [MCP23017] OK
                 </div>
             </div>
@@ -281,7 +345,7 @@
                     <p>Execute terminal command: <span class="mono highlight">python main_auto.py</span> (Verify COM Port config).</p>
                 </li>
                 <li class="step-item">
-                    <h4>PHASE 4: ORBITAL SHADING TEST</h4>
+                    <h4>PHASE 4: SHADING TEST</h4>
                     <p>Proceed with 10 Cases protocol. Maintain 10-15s hold per case for AI smoothing & stabilization.</p>
                 </li>
             </ul>
@@ -334,8 +398,8 @@
                 'autoplay': 0,
                 'loop': 1,
                 'playlist': 'WHqbqzqeskw',
-                'start': 32,
-                'origin': window.location.origin // เพิ่มความปลอดภัยให้ออกเน็ตได้
+                'start': 465,
+                'origin': window.location.origin
             },
             events: {
                 'onReady': onPlayerReady
@@ -357,8 +421,8 @@
         }
 
         if (!isPlaying) {
-            player.unMute(); // บังคับเลิกปิดเสียง
-            player.setVolume(80); // ตั้งระดับเสียงที่ 80%
+            player.unMute();
+            player.setVolume(100);
             player.playVideo();
             icon.innerText = "🔊";
             text.innerText = "MUSIC: ON";

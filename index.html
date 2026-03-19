@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DRL 2x2 | Orbital Command</title>
+    <style>
+        /* นำเข้าฟอนต์สไตล์ Web3 / Modern Tech */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;800&family=JetBrains+Mono:wght@400;700&family=Syne:wght@600&display=swap');
+
+        :root {
+            --bg-dark: #030305; /* ดำลึกแบบอวกาศ */
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --card-bg: rgba(20, 20, 25, 0.4);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-glow: #8b5cf6;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* --- NEW NAVIGATION BAR (Modified) --- */
+        .navbar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 20px 0;
+            z-index: 100;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 90%;
+            max-width: 1000px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 12px 30px;
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .nav-logo {
+            font-family: 'Syne', sans-serif;
+            font-weight: 600;
+            letter-spacing: 2px;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 5px 0;
+        }
+
+        /* เส้นใต้เรืองแสงตอน Hover */
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--accent-glow);
+            box-shadow: 0 0 10px var(--accent-glow);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* --- 1. Space Environment (คงเดิม) --- */
+        .starfield {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: 
+                radial-gradient(1px 1px at 10% 20%, #fff, transparent),
+                radial-gradient(1px 1px at 30% 65%, #fff, transparent),
+                radial-gradient(2px 2px at 50% 35%, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1px 1px at 70% 80%, #fff, transparent),
+                radial-gradient(1.5px 1.5px at 90% 10%, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 80% 50%, #fff, transparent);
+            background-size: 200px 200px;
+            z-index: -4;
+            opacity: 0.4;
+        }
+
+        .ambient-glow {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(140px);
+            z-index: -3;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+        .glow-purple { width: 800px; height: 800px; top: -20%; left: -10%; background: radial-gradient(circle, #5b21b6, transparent 60%); opacity: 0.6; }
+        .glow-orange { width: 900px; height: 900px; bottom: -30%; right: -20%; background: radial-gradient(circle, #c2410c, transparent 65%); opacity: 0.5; }
+        .glow-cyan { width: 600px; height: 600px; top: 40%; left: 40%; background: radial-gradient(circle, #0ea5e9, transparent 50%); opacity: 0.3; }
+
+        .orbit-line { position: fixed; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.05); z-index: -2; pointer-events: none; }
+        .orbit-1 { width: 150vw; height: 100vh; top: -20%; left: -25%; transform: rotate(-15deg); }
+        .orbit-2 { width: 120vw; height: 80vh; top: 30%; left: -10%; transform: rotate(10deg); }
+
+        .planet { position: fixed; border-radius: 50%; z-index: -1; pointer-events: none; animation: floatPlanet 20s ease-in-out infinite alternate; }
+        .planet-cyan { width: 220px; height: 220px; top: 15%; left: 10%; background: radial-gradient(circle at 35% 35%, #a7f3d0, #06b6d4, #1e3a8a); box-shadow: inset -30px -30px 50px rgba(0,0,0,0.9), inset 0 0 20px rgba(167, 243, 208, 0.6), inset 10px 10px 30px rgba(255,255,255,0.5), 0 0 60px rgba(6, 182, 212, 0.4); }
+        .planet-purple { width: 160px; height: 160px; top: 55%; left: 15%; background: radial-gradient(circle at 30% 30%, #e879f9, #9333ea, #3b0764); box-shadow: inset -25px -25px 40px rgba(0,0,0,0.85), inset 0 0 15px rgba(232, 121, 249, 0.5), inset 8px 8px 25px rgba(255,255,255,0.4), 0 0 50px rgba(147, 51, 234, 0.3); animation-delay: -7s; animation-duration: 25s; }
+        .planet-orange { width: 180px; height: 180px; top: 60%; right: 15%; background: radial-gradient(circle at 40% 40%, #fdba74, #ea580c, #7c2d12); box-shadow: inset -25px -25px 45px rgba(0,0,0,0.9), inset 0 0 20px rgba(253, 186, 116, 0.4), inset 10px 10px 25px rgba(255,255,255,0.3), 0 0 40px rgba(234, 88, 12, 0.3); animation-delay: -3s; }
+        .planet-dark { width: 90px; height: 90px; top: 25%; right: 25%; background: radial-gradient(circle at 30% 30%, #a1a1aa, #3f3f46, #09090b); box-shadow: inset -15px -15px 30px rgba(0,0,0,0.95), inset 5px 5px 15px rgba(255,255,255,0.2); animation-delay: -12s; animation-duration: 18s; }
+        .planet-tiny { width: 40px; height: 40px; top: 50%; left: 45%; background: #ffffff; box-shadow: inset -5px -5px 10px rgba(0,0,0,0.5), 0 0 30px #ffffff, 0 0 60px #8b5cf6; animation-delay: -5s; animation-duration: 15s; }
+
+        @keyframes floatPlanet { 0% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-30px) rotate(5deg); } 100% { transform: translateY(10px) rotate(-5deg); } }
+
+        .comet { position: fixed; width: 150px; height: 2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); z-index: -2; opacity: 0; transform: rotate(-45deg); animation: shoot 8s linear infinite; }
+        .comet-1 { top: 20%; left: 80%; animation-delay: 2s; }
+        .comet-2 { top: 60%; left: 30%; width: 100px; animation-duration: 12s; animation-delay: 7s; }
+
+        @keyframes shoot { 0% { transform: translateX(0) translateY(0) rotate(-20deg); opacity: 0; } 10% { opacity: 1; } 20% { transform: translateX(-800px) translateY(300px) rotate(-20deg); opacity: 0; } 100% { transform: translateX(-800px) translateY(300px) rotate(-20deg); opacity: 0; } }
+
+        /* --- Container Content (คงเดิม) --- */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 120px 20px 40px 20px; /* เพิ่ม padding top เพื่อหลบ navbar */
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero { text-align: center; margin-bottom: 80px; }
+        .eyebrow { font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 20px; display: block; font-weight: 500; }
+        h1 { font-size: clamp(3.5rem, 6vw, 5.5rem); font-weight: 800; line-height: 1.05; letter-spacing: -0.04em; margin: 0 0 24px 0; text-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .hero p { font-size: 1.15rem; color: var(--text-secondary); max-width: 650px; margin: 0 auto; line-height: 1.6; font-weight: 300; }
+
+        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+        .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 24px; padding: 40px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .card-full { grid-column: 1 / -1; }
+        .card-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-secondary); margin-bottom: 15px; font-weight: 700; }
+        .card-value { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .code-block { background: rgba(0,0,0,0.6); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; color: #10b981; line-height: 1.5; box-shadow: inset 0 4px 20px rgba(0,0,0,0.5); }
+        .step-list { list-style: none; padding: 0; margin: 0; }
+        .step-item { margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .step-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .step-item h4 { margin: 0 0 8px 0; font-size: 1.1rem; color: #f8fafc; }
+        .step-item p { margin: 0; font-size: 1rem; color: var(--text-secondary); line-height: 1.6; font-weight: 300; }
+        .highlight { color: #f59e0b; }
+
+        .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+        .action-btn { display: flex; flex-direction: column; text-decoration: none; background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); padding: 24px; border-radius: 20px; color: var(--text-primary); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(10px); }
+        .action-btn:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2); transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .action-btn h4 { margin: 0 0 8px 0; font-size: 0.95rem; letter-spacing: 0.5px; }
+        .action-btn p { margin: 0; font-size: 0.85rem; color: var(--text-secondary); font-family: 'Inter', sans-serif;}
+
+/* --- 4. Music Control UI --- */
+        .music-control {
+            position: fixed; bottom: 30px; right: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 20px; border-radius: 100px;
+            display: flex; align-items: center; gap: 10px;
+            cursor: pointer; z-index: 200; transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+            color: var(--text-secondary); letter-spacing: 1px;
+        }
+        .music-control:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-glow);
+            color: var(--text-primary); transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+        }
+
+        footer { text-align: center; padding: 60px 0 40px 0; color: rgba(161, 161, 170, 0.5); font-size: 0.85rem; letter-spacing: 3px; }
+
+    </style>
+</head>
+
+</div>
+<body>
+
+    <div class="starfield"></div>
+    <div class="ambient-glow glow-purple"></div>
+    <div class="ambient-glow glow-orange"></div>
+    <div class="ambient-glow glow-cyan"></div>
+    <div class="orbit-line orbit-1"></div>
+    <div class="orbit-line orbit-2"></div>
+    <div class="comet comet-1"></div>
+    <div class="comet comet-2"></div>
+    <div class="planet planet-cyan"></div>
+    <div class="planet planet-purple"></div>
+    <div class="planet planet-orange"></div>
+    <div class="planet planet-dark"></div>
+    <div class="planet planet-tiny"></div>
+
+    <div class="navbar-container">
+        <nav class="navbar">
+            <div class="nav-logo">DRL 2X2</div>
+            <div class="nav-links">
+                <a href="#overview">Overview</a>
+                <a href="#launch-sequence">Launch Sequence</a>
+                <a href="#resources">Resources</a>
+            </div>
+        </nav>
+    </div>
+
+    <div class="container">
+        
+        <div class="hero">
+            <span class="eyebrow">Welcome to the Matrix</span>
+            <h1>The Intelligence of<br>Solar Topologies.</h1>
+            <p>DRL 2X2 ORBITAL COMMAND — Optimize power output under partial shading via Deep Reinforcement Learning (DDQN) built for a decentralized energy future.</p>
+        </div>
+
+        <div class="grid-layout" id="overview">
+            <div class="card">
+                <div class="card-title">Core Engine</div>
+                <div class="card-value">Python / DDQN</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Executor</div>
+                <div class="card-value">ESP32 Combiner</div>
+            </div>
+            
+            <div class="card card-full">
+                <div class="card-title" style="display: flex; justify-content: space-between;">
+                    <span>System Hardware</span>
+                    <span class="mono" style="color: #10b981;">STATUS: STANDBY_</span>
+                </div>
+                <div class="card-value" style="margin-bottom: 24px;">27 Relays <span style="font-size: 1.1rem; color: var(--text-secondary); font-weight: 400; margin-left: 10px;">(14 Active / 13 Bridge)</span></div>
+                
+                <div class="code-block mono">
+                    > I2C_SCAN_LOG:<br>
+                    > 0x70 [MAX44009] OK<br>
+                    > 0x20-0x24 [MCP23017] OK
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-full" style="margin-bottom: 32px;" id="launch-sequence">
+            <div class="card-title">Launch Sequence</div>
+            <ul class="step-list">
+                <li class="step-item">
+                    <h4>PHASE 1: HARDWARE INTEGRATION</h4>
+                    <p>Verify 4 PV inputs, Load Bank (100W 10ohm), and execute continuous bridge power-on (13 Bridges).</p>
+                </li>
+                <li class="step-item">
+                    <h4>PHASE 2: COMMS UPLINK</h4>
+                    <p>Establish Wi-Fi tether. Check ESP32 Local IP via Serial Monitor (Baud: 115200).</p>
+                </li>
+                <li class="step-item">
+                    <h4>PHASE 3: CORE IGNITION</h4>
+                    <p>Execute terminal command: <span class="mono highlight">python main_auto.py</span> (Verify COM Port config).</p>
+                </li>
+                <li class="step-item">
+                    <h4>PHASE 4: ORBITAL SHADING TEST</h4>
+                    <p>Proceed with 10 Cases protocol. Maintain 10-15s hold per case for AI smoothing & stabilization.</p>
+                </li>
+            </ul>
+        </div>
+
+        <div class="btn-grid" id="resources">
+            <a href="http://YOUR_ESP32_IP" target="_blank" class="action-btn">
+                <h4 class="mono">[ TELEMETRY MONITOR ]</h4>
+                <p>Access Real-time ESP32 Dashboard</p>
+            </a>
+            <a href="#" target="_blank" class="action-btn">
+                <h4 class="mono">[ ARCHIVE : TECH REPORT ]</h4>
+                <p>Access Action Map (51) & Logs</p>
+            </a>
+            <a href="#" target="_blank" class="action-btn">
+                <h4 class="mono">[ SCHEMATICS : WIRING ]</h4>
+                <p>View I2C & Relay Matrix Blueprints</p>
+            </a>
+            <a href="#" class="action-btn" style="border-color: rgba(139, 92, 246, 0.4); background: rgba(139, 92, 246, 0.05);">
+                <h4 class="mono" style="color: #d8b4fe;">[ DRL_DATA.CSV ]</h4>
+                <p>Download Experimental Dataset</p>
+            </a>
+        </div>
+
+        <footer class="mono">
+            END OF TRANSMISSION // EE2025-2
+        </footer>
+
+</div>
+<div id="youtube-player" style="position:fixed; bottom:-100px; left:-100px; width:1px; height:1px; overflow:hidden;"></div>
+
+<div class="music-control" id="music-btn" onclick="toggleMusic()">
+    <span id="music-icon">🔇</span>
+    <span id="music-text">MUSIC: OFF</span>
+</div>
+
+<script>
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    var player;
+    var isPlaying = false;
+
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('youtube-player', {
+            videoId: 'WHqbqzqeskw',
+            playerVars: {
+                'autoplay': 0,
+                'loop': 1,
+                'playlist': 'WHqbqzqeskw',
+                'start': 831,
+                'origin': window.location.origin // เพิ่มความปลอดภัยให้ออกเน็ตได้
+            },
+            events: {
+                'onReady': onPlayerReady
+            }
+        });
+    }
+
+    function onPlayerReady(event) {
+        console.log("System: Star-link Audio Connection Ready");
+    }
+
+    function toggleMusic() {
+        const icon = document.getElementById('music-icon');
+        const text = document.getElementById('music-text');
+
+        if (!player || typeof player.playVideo !== 'function') {
+            alert("Waiting for Satellite Connection... (กรุณารอสักครู่ให้ API โหลดครับ)");
+            return;
+        }
+
+        if (!isPlaying) {
+            player.unMute(); // บังคับเลิกปิดเสียง
+            player.setVolume(80); // ตั้งระดับเสียงที่ 80%
+            player.playVideo();
+            icon.innerText = "🔊";
+            text.innerText = "MUSIC: ON";
+            isPlaying = true;
+            console.log("Music Started at 831s");
+        } else {
+            player.pauseVideo();
+            icon.innerText = "🔇";
+            text.innerText = "MUSIC: OFF";
+            isPlaying = false;
+        }
+    }
+</script>
+</body>
+</html>

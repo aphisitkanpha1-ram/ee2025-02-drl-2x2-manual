@@ -16,6 +16,81 @@
             --accent-glow: #8b5cf6;
         }
 
+        /* --- Custom Cursor HUD Styles --- */
+        @media (pointer: fine) {
+            body, a, button, .action-btn, .music-control {
+                cursor: none !important;
+            }
+        }
+
+        .hud-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9998;
+            transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                        height 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                        border-color 0.2s ease, 
+                        background-color 0.2s ease, 
+                        transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hud-cursor::before, .hud-cursor::after {
+            content: '';
+            position: absolute;
+            background: rgba(139, 92, 246, 0.8);
+            transition: background 0.2s ease;
+        }
+
+        .hud-cursor::before { width: 1px; height: 12px; }
+        .hud-cursor::after { width: 12px; height: 1px; }
+
+        .hud-cursor.active {
+            width: 48px;
+            height: 48px;
+            border-color: rgba(16, 185, 129, 0.6);
+            background-color: rgba(16, 185, 129, 0.05);
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+        
+        .hud-cursor.active::before, .hud-cursor.active::after {
+            background: rgba(16, 185, 129, 1);
+        }
+
+        .hud-cursor-dot {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 4px;
+            background: #ffffff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9999;
+            box-shadow: 0 0 8px #ffffff, 0 0 15px var(--accent-glow);
+            transition: transform 0.05s linear;
+        }
+
+        @media (pointer: coarse) {
+            .hud-cursor, .hud-cursor-dot {
+                display: none !important;
+            }
+            body, a, button, .action-btn, .music-control {
+                cursor: auto !important;
+            }
+        }
+        /* -------------------------------- */
+
         body {
             margin: 0;
             padding: 0;
@@ -188,7 +263,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 10px 20px; border-radius: 100px;
             display: flex; align-items: center; gap: 10px;
-            cursor: pointer; z-index: 200; transition: all 0.3s ease;
+            z-index: 200; transition: all 0.3s ease;
             font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
             color: var(--text-secondary); letter-spacing: 1px;
         }
@@ -266,9 +341,11 @@
         }
     </style>
 </head>
-
-</div>
 <body>
+
+    <!-- HUD Cursor Elements -->
+    <div class="hud-cursor" id="hud-cursor"></div>
+    <div class="hud-cursor-dot" id="hud-cursor-dot"></div>
 
     <div class="starfield"></div>
     <div class="ambient-glow glow-purple"></div>
@@ -298,7 +375,7 @@
     <div class="container">
         
         <div class="hero">
-            <span class="eyebrow">DRL 2x2 Oeration Manual</span>
+            <span class="eyebrow">DRL 2x2 Operation Manual</span>
             <h1>The Intelligence of<br>Solar Topologies.</h1>
             <p>2X2 Matrix PV Reconfiguration System — Optimize power output under partial shading via Deep Reinforcement Learning (DRL).</p>
         </div>
@@ -374,67 +451,88 @@
             END OF TRANSMISSION // EE2025-2
         </footer>
 
-</div>
-<div id="youtube-player" style="position:fixed; bottom:-100px; left:-100px; width:1px; height:1px; overflow:hidden;"></div>
+    </div>
+    <div id="youtube-player" style="position:fixed; bottom:-100px; left:-100px; width:1px; height:1px; overflow:hidden;"></div>
 
-<div class="music-control" id="music-btn" onclick="toggleMusic()">
-    <span id="music-icon">🔇</span>
-    <span id="music-text">MUSIC: OFF</span>
-</div>
+    <div class="music-control" id="music-btn" onclick="toggleMusic()">
+        <span id="music-icon">🔇</span>
+        <span id="music-text">MUSIC: OFF</span>
+    </div>
 
-<script>
-    var tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    var firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    <script>
+        // --- HUD Custom Cursor Logic ---
+        const cursor = document.getElementById('hud-cursor');
+        const cursorDot = document.getElementById('hud-cursor-dot');
+        
+        if (cursor && cursorDot && window.matchMedia("(pointer: fine)").matches) {
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = `${e.clientX}px`;
+                cursor.style.top = `${e.clientY}px`;
+                cursorDot.style.left = `${e.clientX}px`;
+                cursorDot.style.top = `${e.clientY}px`;
+            });
 
-    var player;
-    var isPlaying = false;
+            // Add hover effects for interactive elements
+            const hoverElements = document.querySelectorAll('a, .action-btn, .music-control, button');
+            hoverElements.forEach(el => {
+                el.addEventListener('mouseenter', () => cursor.classList.add('active'));
+                el.addEventListener('mouseleave', () => cursor.classList.remove('active'));
+            });
+        }
+        // -------------------------------
 
-    function onYouTubeIframeAPIReady() {
-        player = new YT.Player('youtube-player', {
-            videoId: 'WHqbqzqeskw',
-            playerVars: {
-                'autoplay': 0,
-                'loop': 1,
-                'playlist': 'WHqbqzqeskw',
-                'start': 465,
-                'origin': window.location.origin
-            },
-            events: {
-                'onReady': onPlayerReady
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+        var isPlaying = false;
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-player', {
+                videoId: 'WHqbqzqeskw',
+                playerVars: {
+                    'autoplay': 0,
+                    'loop': 1,
+                    'playlist': 'WHqbqzqeskw',
+                    'start': 465,
+                    'origin': window.location.origin
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            console.log("System: Star-link Audio Connection Ready");
+        }
+
+        function toggleMusic() {
+            const icon = document.getElementById('music-icon');
+            const text = document.getElementById('music-text');
+
+            if (!player || typeof player.playVideo !== 'function') {
+                alert("Waiting for Satellite Connection... (กรุณารอสักครู่ให้ API โหลด)");
+                return;
             }
-        });
-    }
 
-    function onPlayerReady(event) {
-        console.log("System: Star-link Audio Connection Ready");
-    }
-
-    function toggleMusic() {
-        const icon = document.getElementById('music-icon');
-        const text = document.getElementById('music-text');
-
-        if (!player || typeof player.playVideo !== 'function') {
-            alert("Waiting for Satellite Connection... (กรุณารอสักครู่ให้ API โหลดครับ)");
-            return;
+            if (!isPlaying) {
+                player.unMute();
+                player.setVolume(100);
+                player.playVideo();
+                icon.innerText = "🔊";
+                text.innerText = "MUSIC: ON";
+                isPlaying = true;
+                console.log("Music Started at 831s");
+            } else {
+                player.pauseVideo();
+                icon.innerText = "🔇";
+                text.innerText = "MUSIC: OFF";
+                isPlaying = false;
+            }
         }
-
-        if (!isPlaying) {
-            player.unMute();
-            player.setVolume(100);
-            player.playVideo();
-            icon.innerText = "🔊";
-            text.innerText = "MUSIC: ON";
-            isPlaying = true;
-            console.log("Music Started at 831s");
-        } else {
-            player.pauseVideo();
-            icon.innerText = "🔇";
-            text.innerText = "MUSIC: OFF";
-            isPlaying = false;
-        }
-    }
-</script>
+    </script>
 </body>
 </html>
